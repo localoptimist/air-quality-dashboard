@@ -1,2 +1,73 @@
-<div name="airvisual_widget" key="67a787d19c831998fcdb3780"></div>
-    <script type="text/javascript" src="https://widget.iqair.com/script/widget_v3.0.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality Dashboard</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+    <h1>Air Quality Index (AQI) Dashboard</h1>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+
+    <script type="text/javascript">
+        // Google Charts setup
+        google.charts.load('current', {
+            packages: ['corechart', 'line']
+        });
+        google.charts.setOnLoadCallback(drawChart);
+
+        // Function to fetch data from IQAir API and draw the chart
+        function fetchData() {
+            const apiKey = 'your_api_key_here';  // Replace with your IQAir API key
+            const sensorId = 'your_sensor_id_here';  // Replace with your sensor ID
+            const url = `https://api.iqair.com/v1/sensors/${sensorId}/data`;
+
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Prepare data for the chart (example with AQI)
+                let chartData = [];
+                data.data.forEach(entry => {
+                    const timestamp = new Date(entry.timestamp);
+                    const aqi = entry.aqi;
+                    chartData.push([timestamp, aqi]);
+                });
+
+                // Redraw the chart with the new data
+                drawChart(chartData);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Function to draw the chart
+        function drawChart(chartData = []) {
+            var data = new google.visualization.DataTable();
+            data.addColumn('datetime', 'Time');
+            data.addColumn('number', 'AQI');
+
+            // Add the data rows (if any)
+            data.addRows(chartData);
+
+            var options = {
+                title: 'Air Quality Index (AQI) over Time',
+                curveType: 'function',
+                legend: { position: 'bottom' }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        }
+
+        // Initial fetch when the page loads
+        fetchData();
+
+        // Set interval to fetch data every hour (3600000 milliseconds)
+        setInterval(fetchData, 3600000);  // Refresh data every 1 hour (3600000 ms)
+    </script>
+</body>
+</html>
